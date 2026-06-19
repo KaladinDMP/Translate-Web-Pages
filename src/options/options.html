@@ -26,10 +26,9 @@
       <a href="#others" class="w3-bar-item w3-button" data-i18n="lblOthers">Others</a>
       <a href="#experimental" class="w3-bar-item w3-button" data-i18n="lblExperimental">Experimental</a>
     </div>
-    <b><a href="#donation" class="w3-bar-item w3-button w3-padding"><span data-i18n="lblMakeDonation">Make a
-          donation</span> &#10084;</a></b>
     <a href="#release_notes" class="w3-bar-item w3-button w3-padding" data-i18n="lblReleaseNotes">Release Notes</a>
-    <a href="https://github.com/FilipePS/Traduzir-paginas-web/issues" target="blank"
+    <a href="#about" class="w3-bar-item w3-button w3-padding">About</a>
+    <a href="https://github.com/kaladindmp/translate-web-pages/issues" target="blank"
       class="w3-bar-item w3-button w3-padding" data-i18n="lblReport">Report a problem</a>
     <a href="https://crowdin.com/project/translate-web-pages" target="blank" class="w3-bar-item w3-button w3-padding"
       data-i18n="lblTranslateInterface">Translate the interface</a>
@@ -54,10 +53,6 @@
     <header class="w3-container w3-xlarge">
       <p id="itemSelectedName" data-i18n="lblSettings" style="float: left">
         Settings
-      </p>
-      <p style="float: right; display: none" id="btnPatreon">
-        <a href="https://www.patreon.com/filipeps" target="blank" class="patreonButton"><img src="/icons/patreon.png"
-            style="height: 40px" /></a>
       </p>
     </header>
 
@@ -635,96 +630,29 @@
       </div>
 
       <div>
-        <div id="donation" class="w3-container">
-          <section
-            style="background-color: #87CEEB; padding: 20px; border-radius: 20px; box-shadow: 0 0 10px 3px black;">
-            <div style="font-size: 1.2em;">
-              <p style="white-space: pre-line;" data-i18n="donationText">I have been developing, updating, and
-                supporting this
-                extension for over three years. It's amazing to see that we have over 600,000 daily users, and all of
-                these
-                people have been able to migrate to Firefox permanently.
-
-                I aim to release a new version of this extension every month and keep improving it.
-
-                I would be grateful if you could help me financially by becoming a Patreon member and supporting me in
-                bringing improvements to this extension.
-
-                Thank you to everyone who has already contributed to this project.</p>
-
-              <div style="display: flex; justify-content: space-between;">
-                <div>
-                  <a href="https://www.patreon.com/filipeps" target="blank" class="patreonButton"><img
-                      src="/icons/patreon.png" alt="Become a patreon" width="260" /></a>
-                </div>
-
-                <div style="font-size: 0.9em;">
-                  <b>
-                    <div style="display: inline-block" data-i18n="donatewithpaypal">
-                      Donate With PayPal
-                    </div>
-                  </b>
-                  <select id="currency" style="margin-left: 8px">
-                    <option value="USD">USD</option>
-                    <option value="BRL">BRL</option>
-                  </select>
-                  <div id="donateInUSD">
-                    <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
-                      <input type="hidden" name="cmd" value="_s-xclick" />
-                      <input type="hidden" name="hosted_button_id" value="3FH2APUZGCY3A" />
-                      <table>
-                        <tr>
-                          <td>
-                            <input type="hidden" name="on0" value="Donate With Paypal" />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <select name="os0">
-                              <option value="Maximum">20,00 USD</option>
-                              <option value="Pizza">10,00 USD</option>
-                              <option value="Lunch" selected>5,00 USD</option>
-                              <option value="Coffe">3,00 USD</option>
-                            </select>
-                          </td>
-                        </tr>
-                      </table>
-                      <input type="hidden" name="currency_code" value="USD" />
-                      <input type="image" src="/icons/btn_donate_LG.webp" border="0" name="submit" alt="PayPal" />
-                      <img alt="" border="0" src="/icons/pixel.gif" width="1" height="1" />
-                    </form>
-                  </div>
-
-                  <div id="donateInBRL">
-                    <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
-                      <input type="hidden" name="cmd" value="_s-xclick" />
-                      <input type="hidden" name="hosted_button_id" value="UKVQDPTUB5HTG" />
-                      <table>
-                        <tr>
-                          <td>
-                            <input type="hidden" name="on0" value="Doar com o Paypal" />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <select name="os0">
-                              <option value="Maximum">50,00 BRL</option>
-                              <option value="Pizza">30,00 BRL</option>
-                              <option value="Lunch" selected>15,00 BRL</option>
-                              <option value="Coffe">5,00 BRL</option>
-                            </select>
-                          </td>
-                        </tr>
-                      </table>
-                      <input type="hidden" name="currency_code" value="BRL" />
-                      <input type="image" src="/icons/btn_donate_LG.webp" border="0" name="submit" alt="PayPal" />
-                      <img alt="" border="0" src="/icons/pixel.gif" width="1" height="1" />
-                    </form>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
+        <div id="about" class="w3-container" style="padding: 40px 20px;">
+          <div style="max-width: 600px; text-align: center; margin: 0 auto;">
+            <img src="/icons/icon-128.png" style="width: 80px; margin-bottom: 16px;" />
+            <h2 style="margin: 0 0 4px 0;">TWP - Translate Web Pages</h2>
+            <p style="color: #888; margin: 0 0 24px 0;">Manifest V3 Fork</p>
+            <p style="font-size: 1.1em; line-height: 1.7;">
+              Made with &#10084; by <a href="https://github.com/kaladindmp" target="_blank"><b>KaladinDMP</b></a>
+              of <b>ARMGDDN Games</b>
+            </p>
+            <p style="line-height: 1.7;">
+              Forked from
+              <a href="https://github.com/FilipePS/Traduzir-paginas-web" target="_blank">FilipePS / Traduzir-paginas-web</a>
+              and brought to <b>Manifest V3</b>.
+            </p>
+            <p style="line-height: 1.7;">
+              All credit for the original extension goes to <b>FilipePS</b> and all contributors.
+            </p>
+            <hr style="margin: 24px 0;" />
+            <p>
+              <a href="https://github.com/kaladindmp/translate-web-pages" target="_blank" class="w3-button w3-black w3-round" style="margin: 4px;">GitHub</a>
+              <a href="https://github.com/kaladindmp/translate-web-pages/issues" target="_blank" class="w3-button w3-round" style="margin: 4px;">Report an Issue</a>
+            </p>
+          </div>
         </div>
 
         <div id="release_notes" class="w3-container"></div>
