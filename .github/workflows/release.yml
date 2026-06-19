@@ -14,6 +14,10 @@ on:
         description: "Version number (1-4 dot-separated integers, e.g. 1.0.0)"
         required: true
         type: string
+      changelog:
+        description: "What changed in this version (one item per line — becomes the changelog entry)"
+        required: true
+        type: string
       prerelease:
         description: "Mark the GitHub release as a pre-release"
         required: false
@@ -58,12 +62,43 @@ jobs:
           echo "Updated manifest.json version -> $(jq -r .version src/manifest.json)"
           echo "Updated package.json version  -> $(jq -r .version package.json)"
 
+      - name: Inject changelog entry
+        env:
+          CHANGELOG: ${{ github.event.inputs.changelog }}
+        run: |
+          python3 - <<'PYEOF'
+          import os, sys
+          from datetime import datetime, timezone
+
+          version  = os.environ["VERSION"]
+          changelog = os.environ["CHANGELOG"]
+          today    = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+          items = [l.strip().lstrip("-").strip() for l in changelog.splitlines() if l.strip()]
+          if not items:
+              print("ERROR: changelog input is empty"); sys.exit(1)
+
+          li_items = "\n".join(f"        <li>{item}</li>" for item in items)
+          new_entry = (
+              f'\n    <h3>v{version} — <small style="color:#555;">{today}</small></h3>\n'
+              f"    <ul>\n{li_items}\n    </ul>\n"
+          )
+
+          path = "src/options/release-notes/en.html"
+          marker = "<!-- NEW_RELEASE_PLACEHOLDER -->"
+          content = open(path).read()
+          if marker not in content:
+              print(f"ERROR: marker not found in {path}"); sys.exit(1)
+          open(path, "w").write(content.replace(marker, marker + new_entry))
+          print(f"Inserted changelog entry for v{version} ({today})")
+          PYEOF
+
       - name: Commit and tag version bump
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if [ -n "$(git status --porcelain)" ]; then
-            git add src/manifest.json package.json
+            git add src/manifest.json package.json src/options/release-notes/en.html
             git commit -m "Release v$VERSION"
             git push origin HEAD:"${GITHUB_REF_NAME}"
           else
@@ -134,13 +169,15 @@ jobs:
           body: |
             ## TWP - Translate Web Pages v${{ github.event.inputs.version }}
 
-            Manifest V3 build.
+            ${{ github.event.inputs.changelog }}
 
-            ### Assets
+            ---
+
+            ### Install
             - **`TWP-${{ github.event.inputs.version }}-unpacked.zip`** — extract it, then load the folder via *Load unpacked* (Developer Mode) in Chrome/Edge/Brave.
             - **`TWP-${{ github.event.inputs.version }}.crx`** — packed, signed extension.
 
-            > Fork of [FilipePS/Traduzir-paginas-web](https://github.com/FilipePS/Traduzir-paginas-web). MV3 migration by KaladinDMP.
+            > Fork of [FilipePS/Traduzir-paginas-web](https://github.com/FilipePS/Traduzir-paginas-web). MV3 migration by [KaladinDMP](https://github.com/kaladindmp) of ARMGDDN Games.
           files: |
             dist/TWP-${{ github.event.inputs.version }}-unpacked.zip
             dist/TWP-${{ github.event.inputs.version }}.crx

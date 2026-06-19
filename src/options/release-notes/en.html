@@ -11,11 +11,22 @@
 <section>
     <h2>Changelog</h2>
 
-    <h3>v0.01 — Manifest V3 Migration (2024)</h3>
+    <!-- NEW_RELEASE_PLACEHOLDER -->
+
+    <h3>v0.0.5 — <small style="color:#555;">2026-06-19</small></h3>
     <ul>
-        <li>Migrated extension from Manifest V2 to <b>Manifest V3</b> — now compatible with Chrome, Edge, and Brave.</li>
+        <li>Removed all donation and Patreon links from inside the extension UI (options page, popup menu).</li>
+        <li>Updated "Report a problem" link to point to the KaladinDMP fork repository.</li>
+        <li>Removed the "Translate the interface" (Crowdin) link — not applicable to this fork.</li>
+        <li>Rewrote release notes / changelog — clean slate starting at v0.0.4.</li>
+        <li>Added <b>About</b> page to options — credits KaladinDMP / ARMGDDN Games and links back to the original FilipePS extension.</li>
+    </ul>
+
+    <h3>v0.0.4 — <small style="color:#555;">2026-06-18</small></h3>
+    <ul>
+        <li>Migrated extension from <b>Manifest V2 to Manifest V3</b> — now compatible with Chrome, Edge, and Brave.</li>
         <li>Replaced persistent background page with a <b>service worker</b> (<code>background-sw.js</code>).</li>
-        <li>Added fetch-based <b>XMLHttpRequest shim</b> (<code>lib/xhrShim.js</code>) for service worker compatibility — translation APIs work without rewriting existing code.</li>
+        <li>Added fetch-based <b>XMLHttpRequest shim</b> (<code>lib/xhrShim.js</code>) — translation APIs work in the service worker without rewriting existing code.</li>
         <li>Rewrote Bing translation response parser to use regex instead of <code>DOMParser</code> (unavailable in service workers).</li>
         <li>Unified the two separate manifests (Firefox + Chrome) into a single MV3 <code>manifest.json</code>.</li>
         <li>Replaced <code>chrome.browserAction</code> / <code>chrome.pageAction</code> with the unified <code>chrome.action</code> API.</li>
@@ -23,14 +34,15 @@
         <li>Moved <code>host_permissions</code> out of <code>permissions</code> (MV3 requirement).</li>
         <li>Updated <code>web_accessible_resources</code> to MV3 object format with <code>matches</code>.</li>
         <li>Changed keyboard shortcuts from <code>Ctrl+Alt+…</code> to <code>Alt+…</code> — Chrome rejects Ctrl+Alt combinations.</li>
-        <li>Fixed <code>matchMedia</code> and <code>AudioContext</code> references to be service worker safe.</li>
-        <li>Dropped Firefox support — this is a Chromium-only (Chrome / Edge / Brave) build.</li>
-        <li>Added GitHub Actions release workflow — build versioned unpacked zip and signed CRX on demand.</li>
+        <li>Guarded <code>matchMedia</code> and <code>AudioContext</code> references for service worker safety.</li>
+        <li>Fixed <code>window is not defined</code> crash in the service worker caused by TTS code.</li>
+        <li>Dropped Firefox support — Chromium-only build (Chrome / Edge / Brave).</li>
+        <li>Added GitHub Actions release workflow — builds versioned unpacked zip and signed CRX on demand.</li>
     </ul>
 
     <hr>
     <p style="font-size: 0.9em; color: #555;">
-        Fork maintained by <a href="https://github.com/kaladindmp" target="_blank">KaladinDMP</a>.
+        Fork maintained by <a href="https://github.com/kaladindmp" target="_blank">KaladinDMP</a> of ARMGDDN Games.
         Original extension by <a href="https://github.com/FilipePS/Traduzir-paginas-web" target="_blank">FilipePS</a>.
     </p>
 </section>
