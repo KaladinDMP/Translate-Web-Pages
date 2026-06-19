@@ -84,6 +84,7 @@ twpConfig
         $("#others"),
         $("#experimental"),
         $("#release_notes"),
+        $("#about"),
       ];
       divs.forEach((element) => {
         element.style.display = "none";
@@ -99,6 +100,8 @@ twpConfig
       let text;
       if (hash === "#release_notes") {
         text = twpI18n.getMessage("lblReleaseNotes");
+      } else if (hash === "#about") {
+        text = "About";
       } else {
         text = twpI18n.getMessage("lblSettings");
       }
