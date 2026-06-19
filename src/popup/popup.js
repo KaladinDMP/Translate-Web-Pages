@@ -406,10 +406,6 @@ twpConfig
         break;
     }
 
-    $("#btnPatreon").onclick = (e) => {
-      window.open("https://www.patreon.com/filipeps", "_blank");
-    };
-
     $("#btnSwitchInterfaces").addEventListener("click", () => {
       twpConfig.set("useOldPopup", "yes");
       window.location = "old-popup.html";
@@ -693,11 +689,6 @@ twpConfig
               break;
             case "moreOptions":
               tabsCreate(chrome.runtime.getURL("/options/options.html"));
-              break;
-            case "donate":
-              tabsCreate(
-                chrome.runtime.getURL("/options/options.html#donation")
-              );
               break;
             case "translatePDF":
               tabsCreate("https://pdf.translatewebpages.org/");
