@@ -90,7 +90,7 @@ twpConfig
       document.head.appendChild(style);
     }
 
-    if (!chrome.pageAction) {
+    if (!platformInfo.isFirefox) {
       let style = document.createElement("style");
       style.textContent = ".firefox-only {display: none !important}";
       document.head.appendChild(style);
@@ -913,7 +913,11 @@ twpConfig
     }
 
     function addHotkey(hotkeyname, description) {
-      if (hotkeyname === "_execute_browser_action" && !description) {
+      if (
+        (hotkeyname === "_execute_action" ||
+          hotkeyname === "_execute_browser_action") &&
+        !description
+      ) {
         description = "Enable the extension";
       }
       description = translateHotkeysDescription(hotkeyname) || description;

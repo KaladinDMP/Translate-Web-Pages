@@ -15,13 +15,27 @@ The original extension was Manifest V2, which Chrome/Edge are phasing out (and F
 
 **Changes made for MV3:**
 - `manifest_version` bumped to `3`
-- Background page replaced with a **service worker** (`background-sw.js`)
+- The two separate manifests (`manifest.json` for Firefox + `chrome_manifest.json` for Chrome) were **unified into a single MV3 `manifest.json`** that loads in both Chrome and Firefox
+- Background page replaced with a **service worker** (`background-sw.js`) for Chrome, while keeping a `background.scripts` entry so Firefox uses an event page
+- A small `fetch`-based **`XMLHttpRequest` shim** (`lib/xhrShim.js`) is loaded first in the Chrome service worker, since Chrome MV3 service workers don't provide `XMLHttpRequest` (the translation/TTS code relies on it). The shim only activates where `XMLHttpRequest` is missing, so Firefox keeps its native implementation
 - `browser_action` + `page_action` consolidated into the unified `action` API
 - `chrome.browserAction.*` and `chrome.pageAction.*` calls replaced with `chrome.action.*`
+- Keyboard shortcuts changed from `Ctrl+Alt+…` to `Alt+…` — Chrome rejects `Ctrl+Alt` combinations
+- Dynamic toolbar icon uses SVG on Firefox (theme-aware) and PNG on Chrome (which doesn't support SVG action icons)
 - `host_permissions` separated from `permissions` (MV3 requirement)
 - `web_accessible_resources` updated to the MV3 object format with `matches`
 - Context menu contexts updated (`browser_action`/`page_action` → `action`)
 - `matchMedia` guarded for service worker compatibility
+
+## Releases
+
+A GitHub Actions workflow (**Actions → Release → Run workflow**) builds versioned releases on demand:
+1. You enter a version (e.g. `1.0.0`)
+2. It rewrites the version in `manifest.json` and `package.json`, commits and tags `v<version>`
+3. It builds an **unpacked** zip (`TWP-<version>-unpacked.zip`) and a **packed** `.crx` (`TWP-<version>.crx`)
+4. It publishes a GitHub Release with those assets
+
+To keep a stable extension ID across releases, add your signing key as a repository secret named `CRX_PRIVATE_KEY`. If you don't, the workflow generates one and attaches it to the release so you can reuse it.
 
 ## Original Project
 

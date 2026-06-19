@@ -3,6 +3,7 @@
 // Service worker entry point for Manifest V3.
 // Loads all background scripts in the same order as the MV2 background page did.
 importScripts(
+  "/lib/xhrShim.js",
   "/lib/polyfill.js",
   "/lib/checkedLastError.js",
   "/lib/stuff.js",
