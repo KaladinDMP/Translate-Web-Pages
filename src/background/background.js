@@ -776,10 +776,31 @@ twpConfig.onReady(() => {
           const incognito = tabInfo ? tabInfo.incognito : false;
 
           resetPageAction(tabId);
-          chrome.action.setIcon({
-            tabId: tabId,
-            path: getSVGIcon(incognito),
-          });
+
+          if (platformInfo.isFirefox) {
+            // Firefox supports SVG action icons, allowing dynamic theme coloring.
+            chrome.action.setIcon({
+              tabId: tabId,
+              path: getSVGIcon(incognito),
+            });
+          } else {
+            // Chromium does not support SVG action icons, so use the static PNGs.
+            if (
+              pageLanguageState === "translated" &&
+              twpConfig.get("popupBlueWhenSiteIsTranslated") === "yes"
+            ) {
+              chrome.action.setIcon({
+                tabId: tabId,
+                path: "/icons/icon-32-translated.png",
+              });
+            } else {
+              chrome.action.setIcon({
+                tabId: tabId,
+                path: "/icons/icon-32.png",
+              });
+            }
+          }
+          checkedLastError();
         });
       }
 

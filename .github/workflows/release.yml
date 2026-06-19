@@ -1,0 +1,149 @@
+name: Release
+
+# Manually triggered from the GitHub "Actions" tab.
+# You enter the version (e.g. 1.0.0) and it:
+#   1. Rewrites the version in manifest.json and package.json
+#   2. Commits the version bump and tags it v<version>
+#   3. Builds an UNPACKED zip (extract -> "Load unpacked") and a PACKED .crx
+#   4. Publishes a GitHub Release with the version in every filename
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version number (1-4 dot-separated integers, e.g. 1.0.0)"
+        required: true
+        type: string
+      prerelease:
+        description: "Mark the GitHub release as a pre-release"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if ! echo "$VERSION" | grep -qE '^[0-9]+(\.[0-9]+){0,3}$'; then
+            echo "::error::'$VERSION' is not a valid extension version. Use 1-4 dot-separated integers, e.g. 1.0.0"
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Bump version everywhere
+        run: |
+          # manifest.json (the single source of truth for the extension)
+          tmp=$(mktemp)
+          jq --arg v "$VERSION" '.version = $v' src/manifest.json > "$tmp" && mv "$tmp" src/manifest.json
+
+          # package.json
+          tmp=$(mktemp)
+          jq --arg v "$VERSION" '.version = $v' package.json > "$tmp" && mv "$tmp" package.json
+
+          echo "Updated manifest.json version -> $(jq -r .version src/manifest.json)"
+          echo "Updated package.json version  -> $(jq -r .version package.json)"
+
+      - name: Commit and tag version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add src/manifest.json package.json
+            git commit -m "Release v$VERSION"
+            git push origin HEAD:"${GITHUB_REF_NAME}"
+          else
+            echo "No version changes to commit."
+          fi
+          git tag -f "v$VERSION"
+          git push -f origin "v$VERSION"
+
+      - name: Install crx3
+        run: npm install crx3 --no-save
+
+      - name: Build unpacked zip
+        run: |
+          mkdir -p dist
+          ( cd src && zip -r -X "../dist/TWP-${VERSION}-unpacked.zip" . -x '*.DS_Store' )
+          echo "Built dist/TWP-${VERSION}-unpacked.zip"
+
+      - name: Build packed .crx
+        env:
+          CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
+        run: |
+          mkdir -p dist
+          # Use the signing key from the CRX_PRIVATE_KEY secret if provided so the
+          # extension keeps a STABLE ID across releases. Otherwise crx3 generates a
+          # fresh key (the ID will change) and we publish that key so you can reuse it.
+          if [ -n "$CRX_PRIVATE_KEY" ]; then
+            printf '%s' "$CRX_PRIVATE_KEY" > dist/key.pem
+            echo "Using CRX_PRIVATE_KEY secret for signing."
+          else
+            echo "::warning::No CRX_PRIVATE_KEY secret set. Generating a throwaway key (extension ID will change each release). The generated key.pem is attached to this release."
+          fi
+
+          cat > build-crx.js <<'EOF'
+          const crx3 = require("crx3");
+          const version = process.env.VERSION;
+          crx3(["src/manifest.json"], {
+            keyPath: "dist/key.pem",
+            crxPath: `dist/TWP-${version}.crx`,
+          })
+            .then(() => console.log("crx built: dist/TWP-" + version + ".crx"))
+            .catch((e) => {
+              console.error(e);
+              process.exit(1);
+            });
+          EOF
+          node build-crx.js
+          rm -f build-crx.js
+          ls -la dist
+
+      - name: Prepare release assets
+        env:
+          CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
+        run: |
+          # Only publish the generated key if it was NOT provided via secret,
+          # so the user can save it and set it as CRX_PRIVATE_KEY for future stable builds.
+          if [ -z "$CRX_PRIVATE_KEY" ] && [ -f dist/key.pem ]; then
+            cp dist/key.pem "dist/TWP-${VERSION}-signing-key.pem"
+          fi
+          rm -f dist/key.pem
+          ls -la dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          name: "TWP v${{ github.event.inputs.version }}"
+          prerelease: ${{ github.event.inputs.prerelease }}
+          body: |
+            ## TWP - Translate Web Pages v${{ github.event.inputs.version }}
+
+            Manifest V3 build.
+
+            ### Assets
+            - **`TWP-${{ github.event.inputs.version }}-unpacked.zip`** — extract it, then load the folder via *Load unpacked* (Developer Mode) in Chrome/Edge/Brave.
+            - **`TWP-${{ github.event.inputs.version }}.crx`** — packed, signed extension.
+
+            > Fork of [FilipePS/Traduzir-paginas-web](https://github.com/FilipePS/Traduzir-paginas-web). MV3 migration by KaladinDMP.
+          files: |
+            dist/TWP-${{ github.event.inputs.version }}-unpacked.zip
+            dist/TWP-${{ github.event.inputs.version }}.crx
+            dist/TWP-${{ github.event.inputs.version }}-signing-key.pem
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
