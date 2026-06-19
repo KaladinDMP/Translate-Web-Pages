@@ -1,21 +1,19 @@
 name: Release
 
 # Manually triggered from the GitHub "Actions" tab.
-# You enter the version (e.g. 1.0.0) and it:
-#   1. Rewrites the version in manifest.json and package.json
-#   2. Commits the version bump and tags it v<version>
-#   3. Builds an UNPACKED zip (extract -> "Load unpacked") and a PACKED .crx
-#   4. Publishes a GitHub Release with the version in every filename
+# You enter the version (e.g. 0.0.6) and it:
+#   1. Collects commit messages since the last release tag as the changelog
+#   2. Injects a dated changelog entry into release-notes/en.html
+#   3. Rewrites the version in manifest.json and package.json
+#   4. Commits everything and tags v<version>
+#   5. Builds an UNPACKED zip and a PACKED .crx
+#   6. Publishes a GitHub Release with the changelog and both assets
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version number (1-4 dot-separated integers, e.g. 1.0.0)"
-        required: true
-        type: string
-      changelog:
-        description: "What changed in this version (one item per line — becomes the changelog entry)"
+        description: "Version number (1-4 dot-separated integers, e.g. 0.0.6)"
         required: true
         type: string
       prerelease:
@@ -34,15 +32,46 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Validate version
         run: |
           VERSION="${{ github.event.inputs.version }}"
           if ! echo "$VERSION" | grep -qE '^[0-9]+(\.[0-9]+){0,3}$'; then
-            echo "::error::'$VERSION' is not a valid extension version. Use 1-4 dot-separated integers, e.g. 1.0.0"
+            echo "::error::'$VERSION' is not a valid extension version. Use 1-4 dot-separated integers, e.g. 0.0.6"
             exit 1
           fi
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Build changelog from commits since last release
+        run: |
+          # Find the most recent tag; if none exists, use all commits
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            echo "Collecting commits since $PREV_TAG"
+            COMMITS=$(git log "${PREV_TAG}..HEAD" --pretty=format:"%s" --no-merges \
+              | grep -v '^Release v' || true)
+          else
+            echo "No previous tag — collecting all commits"
+            COMMITS=$(git log --pretty=format:"%s" --no-merges \
+              | grep -v '^Release v' || true)
+          fi
+
+          if [ -z "$COMMITS" ]; then
+            COMMITS="Minor improvements and fixes"
+          fi
+
+          echo "--- Changelog preview ---"
+          echo "$COMMITS"
+          echo "-------------------------"
+
+          # Store for later steps (multiline-safe)
+          {
+            echo "COMMITS<<__EOF__"
+            echo "$COMMITS"
+            echo "__EOF__"
+          } >> "$GITHUB_ENV"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -51,32 +80,29 @@ jobs:
 
       - name: Bump version everywhere
         run: |
-          # manifest.json (the single source of truth for the extension)
           tmp=$(mktemp)
           jq --arg v "$VERSION" '.version = $v' src/manifest.json > "$tmp" && mv "$tmp" src/manifest.json
 
-          # package.json
           tmp=$(mktemp)
           jq --arg v "$VERSION" '.version = $v' package.json > "$tmp" && mv "$tmp" package.json
 
-          echo "Updated manifest.json version -> $(jq -r .version src/manifest.json)"
-          echo "Updated package.json version  -> $(jq -r .version package.json)"
+          echo "manifest.json -> $(jq -r .version src/manifest.json)"
+          echo "package.json  -> $(jq -r .version package.json)"
 
-      - name: Inject changelog entry
-        env:
-          CHANGELOG: ${{ github.event.inputs.changelog }}
+      - name: Inject changelog entry into release-notes/en.html
         run: |
           python3 - <<'PYEOF'
-          import os, sys
+          import os, sys, html
           from datetime import datetime, timezone
 
-          version  = os.environ["VERSION"]
-          changelog = os.environ["CHANGELOG"]
-          today    = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+          version = os.environ["VERSION"]
+          commits = os.environ["COMMITS"]
+          today   = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-          items = [l.strip().lstrip("-").strip() for l in changelog.splitlines() if l.strip()]
+          items = [html.escape(l.strip().lstrip("-").strip())
+                   for l in commits.splitlines() if l.strip()]
           if not items:
-              print("ERROR: changelog input is empty"); sys.exit(1)
+              items = ["Minor improvements and fixes"]
 
           li_items = "\n".join(f"        <li>{item}</li>" for item in items)
           new_entry = (
@@ -84,16 +110,16 @@ jobs:
               f"    <ul>\n{li_items}\n    </ul>\n"
           )
 
-          path = "src/options/release-notes/en.html"
-          marker = "<!-- NEW_RELEASE_PLACEHOLDER -->"
+          path    = "src/options/release-notes/en.html"
+          marker  = "<!-- NEW_RELEASE_PLACEHOLDER -->"
           content = open(path).read()
           if marker not in content:
               print(f"ERROR: marker not found in {path}"); sys.exit(1)
-          open(path, "w").write(content.replace(marker, marker + new_entry))
-          print(f"Inserted changelog entry for v{version} ({today})")
+          open(path, "w").write(content.replace(marker, marker + new_entry, 1))
+          print(f"Injected changelog for v{version} ({today})")
           PYEOF
 
-      - name: Commit and tag version bump
+      - name: Commit and tag
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -101,8 +127,6 @@ jobs:
             git add src/manifest.json package.json src/options/release-notes/en.html
             git commit -m "Release v$VERSION"
             git push origin HEAD:"${GITHUB_REF_NAME}"
-          else
-            echo "No version changes to commit."
           fi
           git tag -f "v$VERSION"
           git push -f origin "v$VERSION"
@@ -121,14 +145,11 @@ jobs:
           CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
         run: |
           mkdir -p dist
-          # Use the signing key from the CRX_PRIVATE_KEY secret if provided so the
-          # extension keeps a STABLE ID across releases. Otherwise crx3 generates a
-          # fresh key (the ID will change) and we publish that key so you can reuse it.
           if [ -n "$CRX_PRIVATE_KEY" ]; then
             printf '%s' "$CRX_PRIVATE_KEY" > dist/key.pem
             echo "Using CRX_PRIVATE_KEY secret for signing."
           else
-            echo "::warning::No CRX_PRIVATE_KEY secret set. Generating a throwaway key (extension ID will change each release). The generated key.pem is attached to this release."
+            echo "::warning::No CRX_PRIVATE_KEY secret — generating a one-time key. Attach it as the CRX_PRIVATE_KEY secret to keep a stable extension ID."
           fi
 
           cat > build-crx.js <<'EOF'
@@ -139,26 +160,40 @@ jobs:
             crxPath: `dist/TWP-${version}.crx`,
           })
             .then(() => console.log("crx built: dist/TWP-" + version + ".crx"))
-            .catch((e) => {
-              console.error(e);
-              process.exit(1);
-            });
+            .catch((e) => { console.error(e); process.exit(1); });
           EOF
           node build-crx.js
           rm -f build-crx.js
-          ls -la dist
 
       - name: Prepare release assets
         env:
           CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
         run: |
-          # Only publish the generated key if it was NOT provided via secret,
-          # so the user can save it and set it as CRX_PRIVATE_KEY for future stable builds.
           if [ -z "$CRX_PRIVATE_KEY" ] && [ -f dist/key.pem ]; then
             cp dist/key.pem "dist/TWP-${VERSION}-signing-key.pem"
           fi
           rm -f dist/key.pem
           ls -la dist
+
+      - name: Format release body
+        run: |
+          BULLET_LIST=$(echo "$COMMITS" | sed 's/^/- /')
+          {
+            echo "RELEASE_BODY<<__EOF__"
+            echo "## TWP — Translate Web Pages v${VERSION}"
+            echo ""
+            echo "### What's changed"
+            echo "$BULLET_LIST"
+            echo ""
+            echo "---"
+            echo ""
+            echo "### Install"
+            echo "- **\`TWP-${VERSION}-unpacked.zip\`** — extract, then *Load unpacked* in Chrome/Edge/Brave (Developer Mode)."
+            echo "- **\`TWP-${VERSION}.crx\`** — packed, signed extension."
+            echo ""
+            echo "> Fork of [FilipePS/Traduzir-paginas-web](https://github.com/FilipePS/Traduzir-paginas-web). MV3 migration by [KaladinDMP](https://github.com/kaladindmp) of ARMGDDN Games."
+            echo "__EOF__"
+          } >> "$GITHUB_ENV"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -166,18 +201,7 @@ jobs:
           tag_name: "v${{ github.event.inputs.version }}"
           name: "TWP v${{ github.event.inputs.version }}"
           prerelease: ${{ github.event.inputs.prerelease }}
-          body: |
-            ## TWP - Translate Web Pages v${{ github.event.inputs.version }}
-
-            ${{ github.event.inputs.changelog }}
-
-            ---
-
-            ### Install
-            - **`TWP-${{ github.event.inputs.version }}-unpacked.zip`** — extract it, then load the folder via *Load unpacked* (Developer Mode) in Chrome/Edge/Brave.
-            - **`TWP-${{ github.event.inputs.version }}.crx`** — packed, signed extension.
-
-            > Fork of [FilipePS/Traduzir-paginas-web](https://github.com/FilipePS/Traduzir-paginas-web). MV3 migration by [KaladinDMP](https://github.com/kaladindmp) of ARMGDDN Games.
+          body: ${{ env.RELEASE_BODY }}
           files: |
             dist/TWP-${{ github.event.inputs.version }}-unpacked.zip
             dist/TWP-${{ github.event.inputs.version }}.crx
