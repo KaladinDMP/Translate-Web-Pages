@@ -13,11 +13,14 @@ Translate your page in real time using Google, Bing or Yandex.
 
 The original extension was Manifest V2, which Chrome/Edge are phasing out (and Firefox is also moving away from). This fork updates the extension to **Manifest V3**, the current extension standard supported by all major browsers.
 
+> **Target:** This MV3 build is for **Chromium browsers (Chrome / Edge / Brave)**. Firefox does not yet support extension service workers, so it would need a separate event-page build — see *Known limitations* below.
+
 **Changes made for MV3:**
 - `manifest_version` bumped to `3`
-- The two separate manifests (`manifest.json` for Firefox + `chrome_manifest.json` for Chrome) were **unified into a single MV3 `manifest.json`** that loads in both Chrome and Firefox
-- Background page replaced with a **service worker** (`background-sw.js`) for Chrome, while keeping a `background.scripts` entry so Firefox uses an event page
-- A small `fetch`-based **`XMLHttpRequest` shim** (`lib/xhrShim.js`) is loaded first in the Chrome service worker, since Chrome MV3 service workers don't provide `XMLHttpRequest` (the translation/TTS code relies on it). The shim only activates where `XMLHttpRequest` is missing, so Firefox keeps its native implementation
+- The two separate manifests (`manifest.json` for Firefox + `chrome_manifest.json` for Chrome) were **unified into a single MV3 `manifest.json`**
+- Persistent background page replaced with a **service worker** (`background-sw.js`) that `importScripts()` the existing background scripts
+- A small `fetch`-based **`XMLHttpRequest` shim** (`lib/xhrShim.js`) is loaded first in the service worker, since Chrome MV3 service workers don't provide `XMLHttpRequest` (the translation/auth/TTS code relies on it). The shim only activates where `XMLHttpRequest` is missing, so native XHR is used wherever it exists
+- Bing's response parser was rewritten to not use `DOMParser` (unavailable in a service worker)
 - `browser_action` + `page_action` consolidated into the unified `action` API
 - `chrome.browserAction.*` and `chrome.pageAction.*` calls replaced with `chrome.action.*`
 - Keyboard shortcuts changed from `Ctrl+Alt+…` to `Alt+…` — Chrome rejects `Ctrl+Alt` combinations
@@ -25,7 +28,11 @@ The original extension was Manifest V2, which Chrome/Edge are phasing out (and F
 - `host_permissions` separated from `permissions` (MV3 requirement)
 - `web_accessible_resources` updated to the MV3 object format with `matches`
 - Context menu contexts updated (`browser_action`/`page_action` → `action`)
-- `matchMedia` guarded for service worker compatibility
+- `matchMedia` and `AudioContext`/DOM references guarded for service worker compatibility
+
+### Known limitations
+- **Text-to-speech** audio playback uses DOM APIs (`Audio`, `AudioContext`) that don't exist in a service worker. It does not play audio under Chrome MV3 without an offscreen document (a possible future addition). Page/text translation is unaffected.
+- **Firefox**: this single manifest uses `background.service_worker`, which Firefox doesn't support yet. A Firefox build would need a `background.scripts` event-page manifest.
 
 ## Releases
 
