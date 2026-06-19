@@ -3,7 +3,7 @@
   "default_locale": "en",
   "name": "TWP - Translate Web Pages",
   "description": "__MSG_extensionDescription__",
-  "version": "10.1.1.0",
+  "version": "0.0.1",
   "homepage_url": "https://github.com/kaladindmp/translate-web-pages",
   "browser_specific_settings": {
     "gecko": {
@@ -57,8 +57,12 @@
     "contextMenus",
     "webRequest"
   ],
-  "host_permissions": ["<all_urls>"],
-  "optional_permissions": ["webNavigation"],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "optional_permissions": [
+    "webNavigation"
+  ],
   "web_accessible_resources": [
     {
       "resources": [
@@ -72,7 +76,9 @@
         "/_locales/*",
         "/options/open-options.html"
       ],
-      "matches": ["<all_urls>"]
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
   "options_ui": {
@@ -87,13 +93,19 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "<all_urls>"
+      ],
       "run_at": "document_start",
       "all_frames": false,
-      "js": ["/contentScript/checkScriptIsInjected.js"]
+      "js": [
+        "/contentScript/checkScriptIsInjected.js"
+      ]
     },
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "<all_urls>"
+      ],
       "run_at": "document_start",
       "all_frames": true,
       "match_about_blank": true,
@@ -106,7 +118,9 @@
       ]
     },
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "<all_urls>"
+      ],
       "run_at": "document_end",
       "all_frames": true,
       "match_about_blank": true,
@@ -119,16 +133,24 @@
       ]
     },
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "<all_urls>"
+      ],
       "run_at": "document_end",
       "all_frames": false,
-      "js": ["/contentScript/popupMobile.js"]
+      "js": [
+        "/contentScript/popupMobile.js"
+      ]
     },
     {
-      "matches": ["https://www.deepl.com/*/translator*"],
+      "matches": [
+        "https://www.deepl.com/*/translator*"
+      ],
       "run_at": "document_end",
       "all_frames": false,
-      "js": ["/contentScript/deepl.js"]
+      "js": [
+        "/contentScript/deepl.js"
+      ]
     }
   ],
   "background": {
