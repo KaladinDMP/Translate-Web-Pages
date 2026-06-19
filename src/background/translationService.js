@@ -1143,28 +1143,44 @@ const translationService = (function () {
         },
         function cbTransformResponse(result, dontSortResults) {
           const resultArray = [];
-
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(result, "text/html");
           let currText = "";
-          doc.body.childNodes.forEach((node) => {
-            if (dontSortResults) {
-              if (node.nodeName == "#text") {
-                currText += node.textContent;
-              } else {
-                resultArray.push(currText + node.textContent);
-                currText = "";
-              }
+
+          // The response is a sequence of text nodes and <bNN>...</bNN>
+          // elements. Service workers have no DOMParser, so parse it manually.
+          // This mirrors the old behavior of reading each node's textContent
+          // (HTML entities decoded, nested tags stripped).
+          const decodeEntities = (str) =>
+            str
+              .replace(/<[^>]*>/g, "")
+              .replace(/&lt;/g, "<")
+              .replace(/&gt;/g, ">")
+              .replace(/&quot;/g, '"')
+              .replace(/&#0*39;/g, "'")
+              .replace(/&apos;/g, "'")
+              .replace(/&#(\d+);/g, (m, d) => String.fromCodePoint(parseInt(d, 10)))
+              .replace(/&#x([0-9a-fA-F]+);/g, (m, h) =>
+                String.fromCodePoint(parseInt(h, 16))
+              )
+              .replace(/&amp;/g, "&");
+
+          const regex = /<b(\d+)>([\s\S]*?)<\/b\1>|([^<]+)/g;
+          let match;
+          while ((match = regex.exec(result)) !== null) {
+            if (match[3] !== undefined) {
+              // text node
+              currText += decodeEntities(match[3]);
             } else {
-              if (node.nodeName == "#text") {
-                currText += node.textContent;
+              // <bNN> element
+              const text = decodeEntities(match[2]);
+              if (dontSortResults) {
+                resultArray.push(currText + text);
               } else {
-                const id = parseInt(node.nodeName.slice(1)) - 10;
-                resultArray[id] = currText + node.textContent;
-                currText = "";
+                const id = parseInt(match[1]) - 10;
+                resultArray[id] = currText + text;
               }
+              currText = "";
             }
-          });
+          }
 
           return resultArray;
         },

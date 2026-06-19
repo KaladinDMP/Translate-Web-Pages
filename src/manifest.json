@@ -154,20 +154,6 @@
     }
   ],
   "background": {
-    "service_worker": "/background/background-sw.js",
-    "scripts": [
-      "/lib/xhrShim.js",
-      "/lib/polyfill.js",
-      "/lib/checkedLastError.js",
-      "/lib/stuff.js",
-      "/lib/languages.js",
-      "/lib/config.js",
-      "/lib/platformInfo.js",
-      "/lib/i18n.js",
-      "/background/translationCache.js",
-      "/background/translationService.js",
-      "/background/textToSpeech.js",
-      "/background/background.js"
-    ]
+    "service_worker": "/background/background-sw.js"
   }
 }
