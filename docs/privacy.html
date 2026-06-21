@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — TWP Translate Web Pages</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      line-height: 1.7;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    header {
+      border-bottom: 1px solid #30363d;
+      padding-bottom: 24px;
+      margin-bottom: 36px;
+    }
+    header h1 {
+      font-size: 2em;
+      color: #f0f6fc;
+    }
+    header p {
+      color: #8b949e;
+      margin-top: 6px;
+    }
+    h2 {
+      color: #f0f6fc;
+      font-size: 1.2em;
+      margin: 32px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #21262d;
+    }
+    p { margin-bottom: 12px; }
+    ul {
+      margin: 8px 0 12px 20px;
+    }
+    ul li { margin-bottom: 6px; }
+    a { color: #58a6ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .badge {
+      display: inline-block;
+      background: #238636;
+      color: #fff;
+      font-size: 0.78em;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 20px;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    footer {
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 1px solid #30363d;
+      color: #8b949e;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>TWP — Translate Web Pages <span class="badge">MV3</span></h1>
+      <p>Privacy Policy &nbsp;·&nbsp; Last updated: June 2026</p>
+    </header>
+
+    <h2>Overview</h2>
+    <p>
+      TWP - Translate Web Pages is a browser extension that translates web pages in real time using
+      Google Translate, Microsoft Bing Translator, or Yandex Translate — whichever service you choose.
+    </p>
+    <p>
+      <strong>The extension does not collect, store, or transmit any personal data to us.</strong>
+      No analytics, no tracking, no accounts.
+    </p>
+
+    <h2>What data leaves your browser</h2>
+    <p>
+      When you translate a page or selected text, that text is sent directly from your browser to the
+      translation service you selected:
+    </p>
+    <ul>
+      <li><a href="https://policies.google.com/privacy" target="_blank">Google Translate</a> — Google's privacy policy applies</li>
+      <li><a href="https://privacy.microsoft.com/en-us/privacystatement" target="_blank">Microsoft Bing Translator</a> — Microsoft's privacy policy applies</li>
+      <li><a href="https://yandex.com/legal/privacy/" target="_blank">Yandex Translate</a> — Yandex's privacy policy applies</li>
+    </ul>
+    <p>
+      The content you translate is governed by whichever service you choose to use. We have no visibility
+      into what those services do with translation requests — please review their respective privacy policies.
+    </p>
+
+    <h2>What data stays on your device</h2>
+    <p>The extension saves the following <strong>locally in your browser only</strong> using the Chrome storage API:</p>
+    <ul>
+      <li>Your preferred translation service (Google, Bing, or Yandex)</li>
+      <li>Your target translation language</li>
+      <li>Per-site auto-translate preferences</li>
+      <li>UI settings (theme, popup style, etc.)</li>
+    </ul>
+    <p>This data never leaves your device and is never sent to us or any third party.</p>
+
+    <h2>Permissions explained</h2>
+    <ul>
+      <li><strong>storage</strong> — saves your preferences locally on your device</li>
+      <li><strong>activeTab</strong> — reads the current page's text so it can be translated in place</li>
+      <li><strong>contextMenus</strong> — adds right-click options to translate the page or selected text</li>
+      <li><strong>webRequest</strong> — handles authentication tokens required by translation service APIs</li>
+      <li><strong>webNavigation</strong> (optional) — detects navigation to apply auto-translate settings</li>
+      <li><strong>Host access (&lt;all_urls&gt;)</strong> — required to translate any page the user visits; the extension cannot know in advance which sites you'll want to translate</li>
+    </ul>
+
+    <h2>No remote code</h2>
+    <p>
+      All extension code is bundled locally. No JavaScript is loaded from external servers at runtime.
+      This extension complies with the Chrome Web Store's Manifest V3 requirements.
+    </p>
+
+    <h2>Children's privacy</h2>
+    <p>
+      This extension does not knowingly collect any information from anyone, including children under 13.
+    </p>
+
+    <h2>Changes to this policy</h2>
+    <p>
+      If this policy changes, the updated version will be published at this URL. The "last updated" date
+      at the top of this page will reflect any changes.
+    </p>
+
+    <h2>Contact</h2>
+    <p>
+      Questions or concerns? Open an issue on GitHub:<br />
+      <a href="https://github.com/kaladindmp/translate-web-pages/issues" target="_blank">
+        github.com/kaladindmp/translate-web-pages/issues
+      </a>
+    </p>
+
+    <footer>
+      <p>
+        TWP - Translate Web Pages is a fork of
+        <a href="https://github.com/FilipePS/Traduzir-paginas-web" target="_blank">FilipePS/Traduzir-paginas-web</a>,
+        updated to Manifest V3 by <a href="https://github.com/kaladindmp" target="_blank">KaladinDMP</a> of ARMGDDN Games.
+      </p>
+    </footer>
+  </div>
+</body>
+</html>
